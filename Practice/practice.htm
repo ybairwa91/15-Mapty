@@ -348,7 +348,20 @@
     <div id="map"></div>
 
     <script>
+      // prettier-ignore
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+      const form = document.querySelector(".form");
+      const containerWorkouts = document.querySelector(".workouts");
+      const inputType = document.querySelector(".form__input--type");
+      let inputDistance = document.querySelector(".form__input--distance");
+      let inputDuration = document.querySelector(".form__input--duration");
+      let inputCadence = document.querySelector(".form__input--cadence");
+      let inputElevation = document.querySelector(".form__input--elevation");
+      let map, mapEvent;
       class App {
+        #map;
+        mapEvent;
         constructor() {
           this._getPosition();
         }
@@ -362,31 +375,61 @@
             }
           );
         }
-        //
+
         _loadMap(position) {
           const { latitude, longitude } = position.coords;
           const coords = [latitude, longitude];
           console.log(latitude, longitude);
 
-          let map = L.map("map").setView(coords, 13);
+          this.#map = L.map("map").setView(coords, 13);
+          // console.log(this.#map);
           L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19,
             attribution:
               '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          }).addTo(map);
+          }).addTo(this.#map);
           let popup = L.popup()
             .setLatLng(coords)
             .setContent("i am a popup")
-            .openOn(map);
-          this.map.on
+            .openOn(this.#map);
+
+          this.#map.on("click", function (mapE) {
+            form.classList.remove("hidden");
+            inputDistance.focus();
+            this.mapEvent = mapE;
+            console.log(this.mapEvent);
+          });
         }
 
-        //
         _showForm() {}
         _ToggleElevationField() {}
         _newWorkOut() {}
       }
       const app = new App();
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        inputDistance.value =
+          inputCadence.value =
+          inputDuration.value =
+          inputElevation.value =
+            " ";
+        console.log(mapEvent);
+        const { lat, lng } = this.mapEvent.latlng;
+        L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(
+            L.popup({
+              maxWidth: 250,
+              minWidth: 100,
+              autoClose: false,
+              closeOnClick: false,
+              className: "running-popup",
+            })
+          )
+          .setPopupContent("Workout")
+          .openPopup();
+      });
     </script>
   </body>
 </html>
