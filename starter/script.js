@@ -11,6 +11,47 @@ let inputDuration = document.querySelector('.form__input--duration');
 let inputCadence = document.querySelector('.form__input--cadence');
 let inputElevation = document.querySelector('.form__input--elevation');
 
+//
+class Workout {
+  date = new Date();
+  id = Date.now() + ' '.slice(-10);
+  constructor(coords, distance, duration) {
+    this.coords = coords; // [lat,lin]
+    this.distance = distance; //in km
+    this.duration = duration; //in min
+  }
+}
+class Running extends Workout {
+  constructor(coords, distance, duration, cadence) {
+    super(coords, distance, duration);
+    this.cadence = cadence;
+    this.calcPace();
+  }
+  calcPace() {
+    //min/km
+    this.pace = this.duration / this.distance;
+    return this.pace;
+  }
+}
+class Cycling extends Workout {
+  constructor(coords, distance, duration, elevationGain) {
+    super(coords, distance, duration);
+    this.elevationGain = elevationGain;
+    this.calcSpeed();
+  }
+  calcSpeed() {
+    this.speed = this.distance / (this.duration / 60);
+    return this.speed;
+  }
+}
+
+// const run = new Running([39, -12], 5.2, 24, 178);
+// const cycle = new Cycling([39, -12], 27, 95, 523);
+// console.log(run, cycle);
+
+//////////////////////////////////
+//////////////////////////////////
+//APPLICATION ARCHITECTURE
 class App {
   //private instance properties
   #map;
@@ -18,7 +59,6 @@ class App {
   constructor() {
     this._getPosition();
     form.addEventListener('submit', this._newWorkout.bind(this));
-
     inputType.addEventListener('change', this._toggleElevationField.bind(this));
   }
 
@@ -61,7 +101,7 @@ class App {
 
   _newWorkout(e) {
     e.preventDefault();
-    // console.log(this);
+    
     inputDistance.value =
       inputCadence.value =
       inputDuration.value =
