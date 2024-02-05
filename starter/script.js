@@ -54,16 +54,19 @@ let inputDuration = document.querySelector('.form__input--duration');
 let inputCadence = document.querySelector('.form__input--cadence');
 let inputElevation = document.querySelector('.form__input--elevation');
 
+////APP CLASS
 class App {
-  //private instance properties
+  //PRIVATE INSTANCE PROPERTIES
   #map;
   #mapEvent;
+  #workouts = [];
   constructor() {
+    this.workouts = [];
     this._getPosition();
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField.bind(this));
   }
-
+  //INSTANCE METHODS
   _getPosition() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -78,7 +81,6 @@ class App {
     const { latitude } = position.coords;
     const { longitude } = position.coords;
     const coords = [latitude, longitude];
-
     this.#map = L.map('map').setView(coords, 13);
     L.tileLayer('https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
       attribution:
@@ -86,45 +88,39 @@ class App {
     }).addTo(this.#map);
     this.#map.on('click', this._showForm.bind(this));
   }
-
   _showForm(mapE) {
     form.classList.remove('hidden');
     inputDistance.focus();
-    // console.log(mapE);
-    // console.log(mapEvent);
     this.#mapEvent = mapE;
-    // console.log(this.#mapEvent);
   }
-
   _toggleElevationField() {
     inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
     inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
   }
-
+  ////////////////
   _newWorkout(e) {
+    //some helper function
     const validInputs = (...inputs) =>
       inputs.every(inp => Number.isFinite(inp));
     const allPositive = (...inputs) => inputs.every(inp => inp > 0);
-
     e.preventDefault();
-
     // Get data from form
     const type = inputType.value;
     const distance = +inputDistance.value;
     const duration = +inputDuration.value;
+    let workout;
 
+    //1.step)=if workout running,create running object
     //check if data is valid
-
-    //if workout running,create running object
-
     if (type == 'running') {
       const cadence = +inputCadence.value;
-      //check if data is valid
       if (
         !validInputs(distance, duration, cadence) ||
         !allPositive(distance, duration, cadence)
       )
         return alert('Inputs have to be positive Number');
+      let { lat, lng } = this.#mapEvent.latlng;
+      workout = new Running([lat, lng], distance, duration, cadence);
     }
     //if workout is cycling,then create cycling object
     if (type === 'cycling') {
@@ -135,23 +131,16 @@ class App {
         !allPositive(distance, duration)
       )
         return alert('Inputs have to be positive Number');
+      let { lat, log } = this.#mapEvent.latlng;
+      console.log(lat, lng);
+      workout = new Cycling([lat, lng], distance, duration, elevation);
     }
     //add new object to workout array
+    this.#workouts.push(workout);
+    console.log(workout);
+
     //render workout on map as marker
-    const { lat, lng } = this.#mapEvent.latlng;
-    L.marker([lat, lng])
-      .addTo(this.#map)
-      .bindPopup(
-        L.popup({
-          maxWidth: 250,
-          minWidth: 100,
-          autoClose: false,
-          closeOnClick: false,
-          className: 'running-popup',
-        })
-      )
-      .setPopupContent('Workout')
-      .openPopup();
+    this.renderWorkoutMarker(workout);
     //render workout on list
 
     // Hide the form+clear input fields
@@ -160,6 +149,22 @@ class App {
       inputDuration.value =
       inputElevation.value =
         ' ';
+  }
+  renderWorkoutMarker(workout) {
+    // const { lat, lng } = this.#mapEvent.latlng;
+    L.marker(workout.coords)
+      .addTo(this.#map)
+      .bindPopup(
+        L.popup({
+          maxWidth: 250,
+          minWidth: 100,
+          autoClose: false,
+          closeOnClick: false,
+          className: `${type}-popup`,
+        })
+      )
+      .setPopupContent(workout.distance)
+      .openPopup();
   }
 }
 const app = new App();
