@@ -282,6 +282,6 @@ class App {
   //   this.#workouts = data;
   //   this.#workouts.forEach(work => this._renderWorkout(work));
 }
-
+const app = new App();
 //cycling type
 //now comes to computer architecture
