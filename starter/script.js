@@ -4,6 +4,7 @@
 class Workout {
   date = new Date();
   id = Date.now() + ' '.slice(-10);
+
   constructor(coords, distance, duration) {
     this.coords = coords; // [lat,lin]
     this.distance = distance; //in km
@@ -65,13 +66,19 @@ let inputElevation = document.querySelector('.form__input--elevation');
 ////APP CLASS
 class App {
   //PRIVATE INSTANCE PROPERTIES
+
   #map;
   #mapEvent;
   #workouts = [];
   #mapZoomLevel = 13;
+  // this.workouts = [];
+
   constructor() {
-    this.workouts = [];
+    //get users position
     this._getPosition();
+    //get data from local storage
+    this._getlocalStorage();
+
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField.bind(this));
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
@@ -97,6 +104,7 @@ class App {
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.#map);
     this.#map.on('click', this._showForm.bind(this));
+    this.#workouts.forEach(work => this._renderWorkoutMarker(work));
   }
   _showForm(mapE) {
     form.classList.remove('hidden');
@@ -122,6 +130,8 @@ class App {
     inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
   }
   ////////////////
+  /////////////////////////////
+  ///////////////////////////////////////
   _newWorkout(e) {
     //some helper function
     const validInputs = (...inputs) =>
@@ -133,7 +143,6 @@ class App {
     const distance = +inputDistance.value;
     const duration = +inputDuration.value;
     let workout;
-
     //1.step)=if workout running,create running object
     //check if data is valid
     if (type == 'running') {
@@ -170,6 +179,9 @@ class App {
 
     // Hide the form+clear input fields
     this._hideForm();
+
+    //Set local storage to all workouts
+    this._setLocalStorage();
   }
   _renderWorkoutMarker(workout) {
     // const { lat, lng } = this.#mapEvent.latlng;
@@ -189,6 +201,8 @@ class App {
       )
       .openPopup();
   }
+  //////////////////
+  ////////////////
   _renderWorkout(workout) {
     let html = `<li class="workout workout--${workout.type}" data-id="${
       workout.id
@@ -235,6 +249,7 @@ class App {
         </li>`;
     form.insertAdjacentHTML('afterend', html);
   }
+
   _moveToPopup(e) {
     const workoutEl = e.target.closest('.workout');
     // console.log(workoutEl);
@@ -252,9 +267,21 @@ class App {
       },
     });
   }
+  ///////////////
+
+  _setLocalStorage() {
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+  }
+  _getlocalStorage() {
+    const data = JSON.parse(localStorage.getItem('workouts'));
+    console.log(data);
+  }
+
+  //   if (!localStorage) return;
+
+  //   this.#workouts = data;
+  //   this.#workouts.forEach(work => this._renderWorkout(work));
 }
-const app = new App();
-console.log(app);
 
 //cycling type
 //now comes to computer architecture
